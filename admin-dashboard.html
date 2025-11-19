@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard • STRONGFITNESS</title>
+<style>
+:root{--bg:#0b0b0d;--panel:#141418;--panel2:#1a1a20;--text:#e6e6e6;--muted:#9ea0a6;--border:#26262c;--primary:#e50914;--primary2:#ff3b3b}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+.layout{display:grid;grid-template-columns:260px 1fr;height:100vh}
+.sidebar{background:var(--panel);border-right:1px solid var(--border)}
+.side-head{padding:16px;font-weight:800;border-bottom:1px solid var(--border)}
+.side-nav{display:grid;gap:6px;padding:12px}
+.side-nav a{display:block;padding:10px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);color:#fff;text-decoration:none}
+.side-nav a.active{border-color:#3a3a3f}
+.content{padding:16px;overflow:auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;font-weight:600;text-decoration:none;transition:.2s ease;border:1px solid transparent}
+.btn.primary{background:linear-gradient(180deg,var(--primary),var(--primary2));color:#fff}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
+.btn.primary:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn.ghost:hover{border-color:#3a3a3f;transform:translateY(-1px)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.input,.select,.textarea{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text)}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border-bottom:1px solid var(--border);padding:8px;text-align:left}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+.modal .card{width:640px;max-width:95%}
+.tags{display:flex;gap:8px;flex-wrap:wrap}
+.tag{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel2)}
+.images{display:flex;gap:8px;flex-wrap:wrap}
+.images img{height:64px;width:64px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+.notice{position:fixed;top:16px;right:16px;background:var(--panel2);border:1px solid var(--border);color:#fff;padding:10px 12px;border-radius:10px;display:none}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.layout{grid-template-columns:1fr}}
+</style></head>
+<body>
+<script>var u=JSON.parse(localStorage.getItem('sf_user')||'null');if(!u||!(u.role==='admin'||u.email==='admin@strongfitness.com')){location.href='./admin-login.html'}</script>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="side-head">Admin • STRONGFITNESS</div>
+    <nav class="side-nav">
+      <a href="#produtos" class="active">Produtos</a>
+      <a href="#imagens">Imagens</a>
+      <a href="#estoque">Estoque</a>
+      <a href="#tamanhos">Tamanhos</a>
+      <a href="#categorias">Categorias</a>
+    </nav>
+  </aside>
+  <main class="content">
+    <div id="view-produtos">
+      <div class="grid">
+        <div class="card">
+          <h2>Novo Produto</h2>
+          <div class="field"><label>Nome</label><input id="p-nome" class="input"></div>
+          <div class="field"><label>Descrição</label><textarea id="p-desc" class="textarea"></textarea></div>
+          <div class="field"><label>Categoria</label><select id="p-cat" class="select"><option value="oversized">Oversized</option><option value="dryfit">DryFit</option><option value="conjuntos">Conjuntos Femininos</option><option value="lancamentos">Lançamentos</option></select></div>
+          <div class="field"><label>Preço</label><input id="p-preco" class="input" type="number" step="0.01"></div>
+          <div class="field"><label>Preço promocional (opcional)</label><input id="p-promo" class="input" type="number" step="0.01"></div>
+          <div class="field"><label>Tamanhos disponíveis</label><div id="p-sizes" class="tags"></div></div>
+          <div class="field"><label>Estoque por tamanho</label><div id="p-stock"></div></div>
+          <div class="field"><label>Imagens</label><input id="p-files" type="file" multiple accept="image/*" class="input"></div>
+          <div class="images" id="p-preview"></div>
+          <div class="toolbar"><button class="btn primary" id="p-salvar">Cadastrar</button><button class="btn ghost" id="p-limpar">Limpar</button></div>
+        </div>
+        <div class="card">
+          <h2>Produtos</h2>
+          <div class="toolbar"><input id="p-busca" class="input" placeholder="Buscar por nome"><select id="p-filtro" class="select"><option value="todos">Todas categorias</option><option value="oversized">Oversized</option><option value="dryfit">DryFit</option><option value="conjuntos">Conjuntos</option><option value="lancamentos">Lançamentos</option></select></div>
+          <table class="table"><thead><tr><th>Imagem</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead><tbody id="p-list"></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div id="view-imagens" hidden>
+      <div class="card">
+        <h2>Biblioteca de Imagens</h2>
+        <div class="toolbar"><input id="img-file" type="file" multiple accept="image/*" class="input"><button class="btn primary" id="img-upload">Enviar</button></div>
+        <div class="images" id="img-list"></div>
+      </div>
+    </div>
+    <div id="view-estoque" hidden>
+      <div class="card">
+        <h2>Controle de Estoque</h2>
+        <div id="est-list"></div>
+      </div>
+    </div>
+    <div id="view-tamanhos" hidden>
+      <div class="card">
+        <h2>Gestão de Tamanhos</h2>
+        <div class="toolbar"><input id="size-nome" class="input" placeholder="Novo tamanho"><button class="btn primary" id="size-add">Adicionar</button></div>
+        <div id="size-list"></div>
+      </div>
+    </div>
+    <div id="view-categorias" hidden>
+      <div class="card">
+        <h2>Categorias</h2>
+        <div id="cat-stats"></div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="notice" id="notice"></div>
+<div class="modal" id="edit-modal" hidden><div class="card"><h2>Editar Produto</h2><div class="field"><label>Nome</label><input id="e-nome" class="input"></div><div class="field"><label>Descrição</label><textarea id="e-desc" class="textarea"></textarea></div><div class="field"><label>Categoria</label><select id="e-cat" class="select"><option value="oversized">Oversized</option><option value="dryfit">DryFit</option><option value="conjuntos">Conjuntos Femininos</option><option value="lancamentos">Lançamentos</option></select></div><div class="field"><label>Preço</label><input id="e-preco" class="input" type="number" step="0.01"></div><div class="field"><label>Preço promocional</label><input id="e-promo" class="input" type="number" step="0.01"></div><div class="field"><label>Tamanhos</label><div id="e-sizes" class="tags"></div></div><div class="field"><label>Estoque por tamanho</label><div id="e-stock"></div></div><div class="field"><label>Imagens</label><input id="e-files" type="file" multiple accept="image/*" class="input"></div><div class="images" id="e-preview"></div><div class="toolbar"><button class="btn primary" id="e-salvar">Salvar</button><button class="btn ghost" id="e-cancel">Cancelar</button></div></div></div>
+<script>
+function notice(t){var n=document.getElementById('notice');n.textContent=t;n.style.display='block';setTimeout(function(){n.style.display='none'},1800)}
+function getSizes(){var raw=localStorage.getItem('sf_sizes');if(!raw){var def=['P','M','G','GG','XG'].map(function(s){return {code:s,name:s,active:true}});localStorage.setItem('sf_sizes',JSON.stringify(def));return def}return JSON.parse(raw)}
+function saveSizes(s){localStorage.setItem('sf_sizes',JSON.stringify(s))}
+function getImages(){return JSON.parse(localStorage.getItem('sf_images')||'[]')}
+function saveImages(a){localStorage.setItem('sf_images',JSON.stringify(a))}
+function seedProducts(){var p=[{id:1,nome:'Camiseta Oversized Preto',descricao:'Modelo oversized',categoria:'oversized',preco:99.9,promo:null,tamanhos:['P','M','G','GG'],stock:{P:10,M:12,G:8,GG:5},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=Oversized+Preto'],isNew:true},{id:2,nome:'Camiseta DryFit Cinza',descricao:'Tecnologia DryFit',categoria:'dryfit',preco:79.9,promo:null,tamanhos:['P','M','G'],stock:{P:15,M:10,G:7},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=DryFit+Cinza'],isNew:false},{id:3,nome:'Conjunto Feminino Aesthetic',descricao:'Top+Legging',categoria:'conjuntos',preco:149.9,promo:129.9,tamanhos:['P','M','G'],stock:{P:6,M:9,G:4},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=Conjunto+Feminino'],isNew:true},{id:4,nome:'Regata Performance',descricao:'Leve e respirável',categoria:'dryfit',preco:69.9,promo:null,tamanhos:['M','G'],stock:{M:10,G:10},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=DryFit+Regata'],isNew:false},{id:5,nome:'Shorts Treino Preto',descricao:'Confortável',categoria:'oversized',preco:89.9,promo:null,tamanhos:['P','M','G','GG'],stock:{P:10,M:10,G:10,GG:10},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=Shorts+Treino'],isNew:false}];localStorage.setItem('sf_products',JSON.stringify(p));return p}
+function getProducts(){var raw=localStorage.getItem('sf_products');return raw?JSON.parse(raw):seedProducts()}
+function saveProducts(p){localStorage.setItem('sf_products',JSON.stringify(p))}
+function uid(){return Date.now()+Math.floor(Math.random()*1000)}
+function renderSizesTags(host,selected){host.innerHTML='';getSizes().forEach(function(s){var b=document.createElement('button');b.type='button';b.className='tag';b.textContent=s.name;var on=selected&&selected.includes(s.code);b.style.borderColor=on?'#3a3a3f':getComputedStyle(host).getPropertyValue('--border');b.onclick=function(){var list=selected||[];if(on){selected=list.filter(function(x){return x!==s.code})}else{list=list.concat([s.code]);selected=list}renderSizesTags(host,selected)};host.appendChild(b)});return selected}
+function renderStock(host,selectedSizes,stock){host.innerHTML='';(selectedSizes||[]).forEach(function(code){var wrap=document.createElement('div');wrap.className='field';var label=document.createElement('label');label.textContent='Estoque '+code;var inp=document.createElement('input');inp.className='input';inp.type='number';inp.value=stock&&stock[code]?stock[code]:0;inp.oninput=function(){stock=stock||{};stock[code]=Number(inp.value)};wrap.appendChild(label);wrap.appendChild(inp);host.appendChild(wrap)});return stock}
+function filesToImages(files,cb){var out=[];var pending=files.length;if(!pending){cb(out);return}Array.from(files).forEach(function(f){var reader=new FileReader();reader.onload=function(){out.push(reader.result);if(--pending===0)cb(out)};reader.readAsDataURL(f)})}
+function refreshList(){var list=getProducts();var q=document.getElementById('p-busca').value.toLowerCase();var cat=document.getElementById('p-filtro').value;var body=document.getElementById('p-list');body.innerHTML='';list.filter(function(p){var okName=p.nome.toLowerCase().includes(q);var okCat=(cat==='todos')||(p.categoria===cat);return okName&&okCat}).forEach(function(p){var tr=document.createElement('tr');var img=(p.images&&p.images[0])||'';tr.innerHTML='<td><img src="'+img+'" style="height:40px;width:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></td><td>'+p.nome+'</td><td>'+p.categoria+'</td><td>R$ '+(p.promo||p.preco).toFixed(2)+'</td><td>'+Object.values(p.stock||{}).reduce(function(s,v){return s+Number(v||0)},0)+'</td><td><button class="btn ghost" data-edit="'+p.id+'">Editar</button> <button class="btn primary" data-del="'+p.id+'">Excluir</button></td>';body.appendChild(tr)});Array.from(body.querySelectorAll('[data-edit]')).forEach(function(b){b.onclick=function(){openEdit(Number(b.dataset.edit))}});Array.from(body.querySelectorAll('[data-del]')).forEach(function(b){b.onclick=function(){var id=Number(b.dataset.del);if(!confirm('Confirmar exclusão?'))return;var list=getProducts().filter(function(x){return x.id!==id});saveProducts(list);notice('Produto excluído');refreshList()}})}
+function openEdit(id){var p=getProducts().find(function(x){return x.id===id});var modal=document.getElementById('edit-modal');modal.hidden=false;document.getElementById('e-nome').value=p.nome||'';document.getElementById('e-desc').value=p.descricao||'';document.getElementById('e-cat').value=p.categoria||'oversized';document.getElementById('e-preco').value=p.preco||0;document.getElementById('e-promo').value=p.promo||'';var sWrap=document.getElementById('e-sizes');var sizes=renderSizesTags(sWrap,(p.tamanhos||[]));var stWrap=document.getElementById('e-stock');var stock=renderStock(stWrap,sizes,(p.stock||{}));var preview=document.getElementById('e-preview');preview.innerHTML='';(p.images||[]).forEach(function(src){var im=document.createElement('img');im.src=src;preview.appendChild(im)});document.getElementById('e-files').onchange=function(e){filesToImages(e.target.files,function(imgs){(p.images=p.images||[]).push.apply(p.images,imgs);openEdit(id)})};document.getElementById('e-cancel').onclick=function(){modal.hidden=true};document.getElementById('e-salvar').onclick=function(){p.nome=document.getElementById('e-nome').value;p.descricao=document.getElementById('e-desc').value;p.categoria=document.getElementById('e-cat').value;p.preco=Number(document.getElementById('e-preco').value||0);p.promo=document.getElementById('e-promo').value?Number(document.getElementById('e-promo').value):null;p.tamanhos=sizes;p.stock=stock;var list=getProducts();var idx=list.findIndex(function(x){return x.id===id});list[idx]=p;saveProducts(list);modal.hidden=true;notice('Produto atualizado');refreshList()}}
+function renderSizesPickers(){var host=document.getElementById('p-sizes');var sizes=renderSizesTags(host,[]);var stHost=document.getElementById('p-stock');var stock=renderStock(stHost,sizes,{});document.getElementById('p-salvar').onclick=function(){var nome=document.getElementById('p-nome').value;var desc=document.getElementById('p-desc').value;var cat=document.getElementById('p-cat').value;var preco=Number(document.getElementById('p-preco').value||0);var promo=document.getElementById('p-promo').value?Number(document.getElementById('p-promo').value):null;var files=document.getElementById('p-files').files;filesToImages(files,function(imgs){var list=getProducts();var p={id:uid(),nome:nome,descricao:desc,categoria:cat,preco:preco,promo:promo,tamanhos:sizes,stock:stock,images:imgs,isNew:(cat==='lancamentos')};list.push(p);saveProducts(list);notice('Produto cadastrado');document.getElementById('p-preview').innerHTML='';document.getElementById('p-nome').value='';document.getElementById('p-desc').value='';document.getElementById('p-preco').value='';document.getElementById('p-promo').value='';document.getElementById('p-files').value='';renderSizesPickers();refreshList()})};document.getElementById('p-limpar').onclick=function(){document.getElementById('p-preview').innerHTML='';document.getElementById('p-nome').value='';document.getElementById('p-desc').value='';document.getElementById('p-preco').value='';document.getElementById('p-promo').value='';document.getElementById('p-files').value='';renderSizesPickers()};document.getElementById('p-files').onchange=function(e){filesToImages(e.target.files,function(imgs){var pre=document.getElementById('p-preview');pre.innerHTML='';imgs.forEach(function(src){var im=document.createElement('img');im.src=src;pre.appendChild(im)})})}}
+function renderImages(){var list=getImages();var host=document.getElementById('img-list');host.innerHTML='';list.forEach(function(src,idx){var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.alignItems='center';wrap.style.gap='8px';var im=document.createElement('img');im.src=src;var used=getProducts().filter(function(p){return (p.images||[]).includes(src)}).length;var del=document.createElement('button');del.className='btn ghost';del.textContent='Excluir';del.onclick=function(){if(used){alert('Imagem vinculada a produto');return}var arr=getImages();arr.splice(idx,1);saveImages(arr);renderImages();notice('Imagem excluída')};wrap.appendChild(im);var meta=document.createElement('div');meta.textContent=used?'Usada em '+used+' produto(s)':'Não usada';wrap.appendChild(meta);wrap.appendChild(del);host.appendChild(wrap)});document.getElementById('img-upload').onclick=function(){var f=document.getElementById('img-file').files;filesToImages(f,function(imgs){var arr=getImages();arr.push.apply(arr,imgs);saveImages(arr);renderImages();notice('Imagens enviadas')})}}
+function renderEstoque(){var host=document.getElementById('est-list');host.innerHTML='';getProducts().forEach(function(p){var card=document.createElement('div');card.className='card';card.innerHTML='<div style="font-weight:700;margin-bottom:8px">'+p.nome+'</div>';var sizes=p.tamanhos||[];sizes.forEach(function(s){var row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.alignItems='center';var label=document.createElement('div');label.textContent='Tamanho '+s;var inp=document.createElement('input');inp.className='input';inp.type='number';inp.value=(p.stock&&p.stock[s])||0;inp.oninput=function(){p.stock=p.stock||{};p.stock[s]=Number(inp.value)};row.appendChild(label);row.appendChild(inp);card.appendChild(row)});var save=document.createElement('button');save.className='btn primary';save.textContent='Salvar estoque';save.onclick=function(){var list=getProducts();var idx=list.findIndex(function(x){return x.id===p.id});list[idx]=p;saveProducts(list);notice('Estoque atualizado')};card.appendChild(save);host.appendChild(card)})}
+function renderSizesManage(){var host=document.getElementById('size-list');host.innerHTML='';getSizes().forEach(function(s,idx){var row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.alignItems='center';row.style.marginBottom='8px';var name=document.createElement('input');name.className='input';name.value=s.name;name.oninput=function(){s.name=name.value};var code=document.createElement('input');code.className='input';code.value=s.code;code.oninput=function(){s.code=code.value};var active=document.createElement('input');active.type='checkbox';active.checked=s.active;active.onchange=function(){s.active=active.checked};var save=document.createElement('button');save.className='btn primary';save.textContent='Salvar';save.onclick=function(){var arr=getSizes();arr[idx]=s;saveSizes(arr);notice('Tamanho atualizado')};row.appendChild(name);row.appendChild(code);row.appendChild(active);row.appendChild(save);host.appendChild(row)});document.getElementById('size-add').onclick=function(){var arr=getSizes();arr.push({code:document.getElementById('size-nome').value||('S'+(arr.length+1)),name:document.getElementById('size-nome').value||('S'+(arr.length+1)),active:true});saveSizes(arr);document.getElementById('size-nome').value='';renderSizesManage();notice('Tamanho adicionado')}}
+function renderCatStats(){var host=document.getElementById('cat-stats');host.innerHTML='';var cats=['oversized','dryfit','conjuntos','lancamentos'];cats.forEach(function(c){var n=getProducts().filter(function(p){return p.categoria===c}).length;var row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.innerHTML='<div>'+c.toUpperCase()+'</div><div>'+n+' produto(s)</div>';host.appendChild(row)})}
+function route(){var hash=location.hash.replace('#','')||'produtos';document.querySelectorAll('.side-nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+hash)});document.getElementById('view-produtos').hidden=hash!=='produtos';document.getElementById('view-imagens').hidden=hash!=='imagens';document.getElementById('view-estoque').hidden=hash!=='estoque';document.getElementById('view-tamanhos').hidden=hash!=='tamanhos';document.getElementById('view-categorias').hidden=hash!=='categorias'}
+window.addEventListener('hashchange',route)
+document.addEventListener('DOMContentLoaded',function(){route();renderSizesPickers();refreshList();renderImages();renderEstoque();renderSizesManage();renderCatStats();document.getElementById('p-busca').oninput=refreshList;document.getElementById('p-filtro').onchange=refreshList})
+</script>
+</body></html>
