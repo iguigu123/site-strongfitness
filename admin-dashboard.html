@@ -1,124 +1,207 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard • STRONGFITNESS</title>
-<style>
-:root{--bg:#0b0b0d;--panel:#141418;--panel2:#1a1a20;--text:#e6e6e6;--muted:#9ea0a6;--border:#26262c;--primary:#e50914;--primary2:#ff3b3b}
-body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
-.layout{display:grid;grid-template-columns:260px 1fr;height:100vh}
-.sidebar{background:var(--panel);border-right:1px solid var(--border)}
-.side-head{padding:16px;font-weight:800;border-bottom:1px solid var(--border)}
-.side-nav{display:grid;gap:6px;padding:12px}
-.side-nav a{display:block;padding:10px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);color:#fff;text-decoration:none}
-.side-nav a.active{border-color:#3a3a3f}
-.content{padding:16px;overflow:auto}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;font-weight:600;text-decoration:none;transition:.2s ease;border:1px solid transparent}
-.btn.primary{background:linear-gradient(180deg,var(--primary),var(--primary2));color:#fff}
-.btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
-.btn.primary:hover{transform:translateY(-1px);filter:brightness(1.06)}
-.btn.ghost:hover{border-color:#3a3a3f;transform:translateY(-1px)}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.input,.select,.textarea{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text)}
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{border-bottom:1px solid var(--border);padding:8px;text-align:left}
-.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
-.modal .card{width:640px;max-width:95%}
-.tags{display:flex;gap:8px;flex-wrap:wrap}
-.tag{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel2)}
-.images{display:flex;gap:8px;flex-wrap:wrap}
-.images img{height:64px;width:64px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
-.notice{position:fixed;top:16px;right:16px;background:var(--panel2);border:1px solid var(--border);color:#fff;padding:10px 12px;border-radius:10px;display:none}
-@media(max-width:860px){.grid{grid-template-columns:1fr}.layout{grid-template-columns:1fr}}
-</style></head>
-<body>
-<script>var u=JSON.parse(localStorage.getItem('sf_user')||'null');if(!u||!(u.role==='admin'||u.email==='admin@strongfitness.com')){location.href='./admin-login.html'}</script>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="side-head">Admin • STRONGFITNESS</div>
-    <nav class="side-nav">
-      <a href="#produtos" class="active">Produtos</a>
-      <a href="#imagens">Imagens</a>
-      <a href="#estoque">Estoque</a>
-      <a href="#tamanhos">Tamanhos</a>
-      <a href="#categorias">Categorias</a>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{bg:'#0a0a0a',panel:'#141414',panel2:'#121212',border:'rgba(255,255,255,0.08)',accent:'#e50914',accent2:'#ff3b3b',muted:'#9ea0a6'},boxShadow:{card:'0 10px 24px rgba(0,0,0,.25)'}}}};</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen bg-black bg-center bg-cover bg-fixed text-gray-200" style="background-image:url('./assets/bear-logo.jpg')">
+<script>var u=JSON.parse(localStorage.getItem('sf_user')||'null');if(!u||u.role!=='admin'){location.href='./admin-login.html'}</script>
+<div class="grid grid-cols-[260px_1fr] min-h-screen">
+  <aside class="bg-panel border-r border-[rgba(255,255,255,0.08)]">
+    <div class="px-4 py-4 font-extrabold">Admin • STRONGFITNESS</div>
+    <nav class="grid gap-2 px-3">
+      <a href="#home" class="px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">Home</a>
+      <a href="#produtos" class="px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">Produtos</a>
+      <a href="#categorias" class="px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">Categorias</a>
+      <a href="#pedidos" class="px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">Pedidos</a>
+      <a href="#usuarios" class="px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">Usuários</a>
+      <a href="#config" class="px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">Configurações</a>
     </nav>
   </aside>
-  <main class="content">
-    <div id="view-produtos">
-      <div class="grid">
-        <div class="card">
-          <h2>Novo Produto</h2>
-          <div class="field"><label>Nome</label><input id="p-nome" class="input"></div>
-          <div class="field"><label>Descrição</label><textarea id="p-desc" class="textarea"></textarea></div>
-          <div class="field"><label>Categoria</label><select id="p-cat" class="select"><option value="oversized">Oversized</option><option value="dryfit">DryFit</option><option value="conjuntos">Conjuntos Femininos</option><option value="lancamentos">Lançamentos</option></select></div>
-          <div class="field"><label>Preço</label><input id="p-preco" class="input" type="number" step="0.01"></div>
-          <div class="field"><label>Preço promocional (opcional)</label><input id="p-promo" class="input" type="number" step="0.01"></div>
-          <div class="field"><label>Tamanhos disponíveis</label><div id="p-sizes" class="tags"></div></div>
-          <div class="field"><label>Estoque por tamanho</label><div id="p-stock"></div></div>
-          <div class="field"><label>Imagens</label><input id="p-files" type="file" multiple accept="image/*" class="input"></div>
-          <div class="images" id="p-preview"></div>
-          <div class="toolbar"><button class="btn primary" id="p-salvar">Cadastrar</button><button class="btn ghost" id="p-limpar">Limpar</button></div>
+  <main class="p-5 overflow-y-auto">
+    <div class="flex items-center justify-between">
+      <div class="text-xl font-bold">Dashboard</div>
+      <div class="flex items-center gap-3"><div class="text-sm text-muted" id="admin-name"></div><button id="logout" class="h-10 px-4 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)] hover:-translate-y-0.5 hover:brightness-95 transition">Sair</button></div>
+    </div>
+
+    <section id="view-home" class="mt-6">
+      <div class="grid md:grid-cols-4 gap-4">
+        <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card"><div class="text-sm text-muted">Total de produtos</div><div class="text-2xl font-bold" id="card-produtos">0</div></div>
+        <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card"><div class="text-sm text-muted">Total de pedidos</div><div class="text-2xl font-bold" id="card-pedidos">0</div></div>
+        <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card"><div class="text-sm text-muted">Total de clientes</div><div class="text-2xl font-bold" id="card-clientes">0</div></div>
+        <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card"><div class="text-sm text-muted">Faturamento total</div><div class="text-2xl font-bold" id="card-faturamento">R$ 0,00</div></div>
+      </div>
+      <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card mt-6">
+        <div class="font-semibold mb-2">Vendas por dia</div>
+        <canvas id="sales-chart" height="120"></canvas>
+      </div>
+    </section>
+
+    <section id="view-produtos" class="mt-6 hidden">
+      <div class="flex items-center justify-between mb-3"><div class="text-lg font-semibold">Produtos</div><div class="flex items-center gap-2"><button id="salvar-alteracoes" class="h-10 px-4 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)] hover:-translate-y-0.5 hover:brightness-95 transition">Salvar alterações</button><button id="novo-produto" class="h-10 px-4 rounded-md bg-gradient-to-b from-accent to-accent2 text-white border border-[#3a0c0f] hover:-translate-y-0.5 hover:brightness-95 transition">Novo Produto</button></div></div>
+      <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card">
+        <div class="flex gap-3 mb-3"><input id="busca-prod" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)] focus:border-[#D40000] w-64" placeholder="Buscar por nome"><select id="filtro-cat" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]"><option value="todos">Todas</option></select><select id="filtro-status" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]"><option value="todos">Status</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="esgotado">Esgotado</option></select></div>
+        <div class="overflow-auto">
+          <table class="min-w-full text-sm">
+            <thead class="text-muted">
+              <tr><th class="text-left p-2">Imagem</th><th class="text-left p-2">Nome</th><th class="text-left p-2">Categoria</th><th class="text-left p-2">Preço</th><th class="text-left p-2">Estoque</th><th class="text-left p-2">Status</th><th class="text-left p-2">Criado</th><th class="text-left p-2">Ações</th></tr>
+            </thead>
+            <tbody id="produtos-tbody"></tbody>
+          </table>
         </div>
-        <div class="card">
-          <h2>Produtos</h2>
-          <div class="toolbar"><input id="p-busca" class="input" placeholder="Buscar por nome"><select id="p-filtro" class="select"><option value="todos">Todas categorias</option><option value="oversized">Oversized</option><option value="dryfit">DryFit</option><option value="conjuntos">Conjuntos</option><option value="lancamentos">Lançamentos</option></select></div>
-          <table class="table"><thead><tr><th>Imagem</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead><tbody id="p-list"></tbody></table>
+      </div>
+    </section>
+
+    <section id="view-categorias" class="mt-6 hidden">
+      <div class="text-lg font-semibold mb-3">Categorias</div>
+      <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card">
+        <div class="flex gap-3 mb-3"><input id="cat-nome" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="Nova categoria"><button id="cat-add" class="h-10 px-4 rounded-md bg-gradient-to-b from-accent to-accent2 text-white border border-[#3a0c0f]">Adicionar</button></div>
+        <div id="cat-list" class="grid gap-2"></div>
+      </div>
+    </section>
+
+    <section id="view-pedidos" class="mt-6 hidden">
+      <div class="text-lg font-semibold mb-3">Pedidos</div>
+      <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card">
+        <div id="order-list" class="grid gap-2"></div>
+      </div>
+    </section>
+
+    <section id="view-usuarios" class="mt-6 hidden">
+      <div class="text-lg font-semibold mb-3">Usuários</div>
+      <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card">
+        <div id="user-list" class="grid gap-2"></div>
+      </div>
+    </section>
+
+    <section id="view-config" class="mt-6 hidden">
+      <div class="text-lg font-semibold mb-3">Configurações</div>
+      <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card">
+        <div class="grid md:grid-cols-3 gap-3">
+          <div class="col-span-1">
+            <div class="text-sm text-muted mb-1">Supabase URL</div>
+            <input id="sup-url" class="h-10 w-full px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="https://xxxxx.supabase.co">
+          </div>
+          <div class="col-span-1">
+            <div class="text-sm text-muted mb-1">Anon Key</div>
+            <input id="sup-key" class="h-10 w-full px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="public anon key">
+          </div>
+          <div class="col-span-1">
+            <div class="text-sm text-muted mb-1">Bucket</div>
+            <input id="sup-bucket" class="h-10 w-full px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="images">
+          </div>
         </div>
+        <div class="mt-3"><button id="sup-save" class="h-10 px-4 rounded-md bg-gradient-to-b from-accent to-accent2 text-white border border-[#3a0c0f]">Salvar</button></div>
       </div>
-    </div>
-    <div id="view-imagens" hidden>
-      <div class="card">
-        <h2>Biblioteca de Imagens</h2>
-        <div class="toolbar"><input id="img-file" type="file" multiple accept="image/*" class="input"><button class="btn primary" id="img-upload">Enviar</button></div>
-        <div class="images" id="img-list"></div>
-      </div>
-    </div>
-    <div id="view-estoque" hidden>
-      <div class="card">
-        <h2>Controle de Estoque</h2>
-        <div id="est-list"></div>
-      </div>
-    </div>
-    <div id="view-tamanhos" hidden>
-      <div class="card">
-        <h2>Gestão de Tamanhos</h2>
-        <div class="toolbar"><input id="size-nome" class="input" placeholder="Novo tamanho"><button class="btn primary" id="size-add">Adicionar</button></div>
-        <div id="size-list"></div>
-      </div>
-    </div>
-    <div id="view-categorias" hidden>
-      <div class="card">
-        <h2>Categorias</h2>
-        <div id="cat-stats"></div>
-      </div>
-    </div>
+    </section>
   </main>
 </div>
-<div class="notice" id="notice"></div>
-<div class="modal" id="edit-modal" hidden><div class="card"><h2>Editar Produto</h2><div class="field"><label>Nome</label><input id="e-nome" class="input"></div><div class="field"><label>Descrição</label><textarea id="e-desc" class="textarea"></textarea></div><div class="field"><label>Categoria</label><select id="e-cat" class="select"><option value="oversized">Oversized</option><option value="dryfit">DryFit</option><option value="conjuntos">Conjuntos Femininos</option><option value="lancamentos">Lançamentos</option></select></div><div class="field"><label>Preço</label><input id="e-preco" class="input" type="number" step="0.01"></div><div class="field"><label>Preço promocional</label><input id="e-promo" class="input" type="number" step="0.01"></div><div class="field"><label>Tamanhos</label><div id="e-sizes" class="tags"></div></div><div class="field"><label>Estoque por tamanho</label><div id="e-stock"></div></div><div class="field"><label>Imagens</label><input id="e-files" type="file" multiple accept="image/*" class="input"></div><div class="images" id="e-preview"></div><div class="toolbar"><button class="btn primary" id="e-salvar">Salvar</button><button class="btn ghost" id="e-cancel">Cancelar</button></div></div></div>
+
+<div id="modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center">
+  <div class="bg-panel border border-[rgba(255,255,255,0.08)] rounded-xl p-4 shadow-card w-[720px] max-w-[95%]">
+    <div class="text-lg font-semibold mb-2">Produto</div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <div class="grid gap-2">
+          <input id="m-nome" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="Nome">
+          <textarea id="m-desc" class="h-24 px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="Descrição"></textarea>
+          <input id="m-preco" type="number" step="0.01" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="Preço">
+          <select id="m-cat" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]"></select>
+          <input id="m-estoque" type="number" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="Estoque">
+          <select id="m-status" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]"><option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="esgotado">Esgotado</option></select>
+          <div class="grid gap-2">
+            <div class="text-sm text-muted">Tamanhos e quantidades</div>
+            <div class="flex gap-2">
+              <select id="m-size-name" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+              </select>
+              <input id="m-size-qty" type="number" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]" placeholder="Qtd">
+              <button id="m-size-add" class="h-10 px-3 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)]">Adicionar</button>
+            </div>
+            <div id="m-size-list" class="grid gap-2"></div>
+          </div>
+          <div class="grid gap-2">
+            <div class="text-sm text-muted">Imagem principal</div>
+            <input id="m-principal" type="file" accept="image/*" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">
+            <img id="m-principal-prev" class="h-28 w-full object-cover rounded-md border border-[rgba(255,255,255,0.08)]" hidden>
+          </div>
+      </div>
+      <div class="grid gap-2">
+        <div class="text-sm text-muted">Galeria de imagens</div>
+        <input id="m-galeria" type="file" multiple accept="image/*" class="h-10 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]">
+        <div id="m-galeria-prev" class="grid grid-cols-3 gap-2"></div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-3">
+      <button id="m-cancel" class="h-10 px-4 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)]">Cancelar</button>
+      <button id="m-save" class="h-10 px-4 rounded-md bg-gradient-to-b from-accent to-accent2 text-white border border-[#3a0c0f]">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
-function notice(t){var n=document.getElementById('notice');n.textContent=t;n.style.display='block';setTimeout(function(){n.style.display='none'},1800)}
-function getSizes(){var raw=localStorage.getItem('sf_sizes');if(!raw){var def=['P','M','G','GG','XG'].map(function(s){return {code:s,name:s,active:true}});localStorage.setItem('sf_sizes',JSON.stringify(def));return def}return JSON.parse(raw)}
-function saveSizes(s){localStorage.setItem('sf_sizes',JSON.stringify(s))}
-function getImages(){return JSON.parse(localStorage.getItem('sf_images')||'[]')}
-function saveImages(a){localStorage.setItem('sf_images',JSON.stringify(a))}
-function seedProducts(){var p=[{id:1,nome:'Camiseta Oversized Preto',descricao:'Modelo oversized',categoria:'oversized',preco:99.9,promo:null,tamanhos:['P','M','G','GG'],stock:{P:10,M:12,G:8,GG:5},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=Oversized+Preto'],isNew:true},{id:2,nome:'Camiseta DryFit Cinza',descricao:'Tecnologia DryFit',categoria:'dryfit',preco:79.9,promo:null,tamanhos:['P','M','G'],stock:{P:15,M:10,G:7},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=DryFit+Cinza'],isNew:false},{id:3,nome:'Conjunto Feminino Aesthetic',descricao:'Top+Legging',categoria:'conjuntos',preco:149.9,promo:129.9,tamanhos:['P','M','G'],stock:{P:6,M:9,G:4},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=Conjunto+Feminino'],isNew:true},{id:4,nome:'Regata Performance',descricao:'Leve e respirável',categoria:'dryfit',preco:69.9,promo:null,tamanhos:['M','G'],stock:{M:10,G:10},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=DryFit+Regata'],isNew:false},{id:5,nome:'Shorts Treino Preto',descricao:'Confortável',categoria:'oversized',preco:89.9,promo:null,tamanhos:['P','M','G','GG'],stock:{P:10,M:10,G:10,GG:10},images:['https://placehold.co/600x400/0f0f12/e6e6e6?text=Shorts+Treino'],isNew:false}];localStorage.setItem('sf_products',JSON.stringify(p));return p}
-function getProducts(){var raw=localStorage.getItem('sf_products');return raw?JSON.parse(raw):seedProducts()}
-function saveProducts(p){localStorage.setItem('sf_products',JSON.stringify(p))}
-function uid(){return Date.now()+Math.floor(Math.random()*1000)}
-function renderSizesTags(host,selected){host.innerHTML='';getSizes().forEach(function(s){var b=document.createElement('button');b.type='button';b.className='tag';b.textContent=s.name;var on=selected&&selected.includes(s.code);b.style.borderColor=on?'#3a3a3f':getComputedStyle(host).getPropertyValue('--border');b.onclick=function(){var list=selected||[];if(on){selected=list.filter(function(x){return x!==s.code})}else{list=list.concat([s.code]);selected=list}renderSizesTags(host,selected)};host.appendChild(b)});return selected}
-function renderStock(host,selectedSizes,stock){host.innerHTML='';(selectedSizes||[]).forEach(function(code){var wrap=document.createElement('div');wrap.className='field';var label=document.createElement('label');label.textContent='Estoque '+code;var inp=document.createElement('input');inp.className='input';inp.type='number';inp.value=stock&&stock[code]?stock[code]:0;inp.oninput=function(){stock=stock||{};stock[code]=Number(inp.value)};wrap.appendChild(label);wrap.appendChild(inp);host.appendChild(wrap)});return stock}
-function filesToImages(files,cb){var out=[];var pending=files.length;if(!pending){cb(out);return}Array.from(files).forEach(function(f){var reader=new FileReader();reader.onload=function(){out.push(reader.result);if(--pending===0)cb(out)};reader.readAsDataURL(f)})}
-function refreshList(){var list=getProducts();var q=document.getElementById('p-busca').value.toLowerCase();var cat=document.getElementById('p-filtro').value;var body=document.getElementById('p-list');body.innerHTML='';list.filter(function(p){var okName=p.nome.toLowerCase().includes(q);var okCat=(cat==='todos')||(p.categoria===cat);return okName&&okCat}).forEach(function(p){var tr=document.createElement('tr');var img=(p.images&&p.images[0])||'';tr.innerHTML='<td><img src="'+img+'" style="height:40px;width:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></td><td>'+p.nome+'</td><td>'+p.categoria+'</td><td>R$ '+(p.promo||p.preco).toFixed(2)+'</td><td>'+Object.values(p.stock||{}).reduce(function(s,v){return s+Number(v||0)},0)+'</td><td><button class="btn ghost" data-edit="'+p.id+'">Editar</button> <button class="btn primary" data-del="'+p.id+'">Excluir</button></td>';body.appendChild(tr)});Array.from(body.querySelectorAll('[data-edit]')).forEach(function(b){b.onclick=function(){openEdit(Number(b.dataset.edit))}});Array.from(body.querySelectorAll('[data-del]')).forEach(function(b){b.onclick=function(){var id=Number(b.dataset.del);if(!confirm('Confirmar exclusão?'))return;var list=getProducts().filter(function(x){return x.id!==id});saveProducts(list);notice('Produto excluído');refreshList()}})}
-function openEdit(id){var p=getProducts().find(function(x){return x.id===id});var modal=document.getElementById('edit-modal');modal.hidden=false;document.getElementById('e-nome').value=p.nome||'';document.getElementById('e-desc').value=p.descricao||'';document.getElementById('e-cat').value=p.categoria||'oversized';document.getElementById('e-preco').value=p.preco||0;document.getElementById('e-promo').value=p.promo||'';var sWrap=document.getElementById('e-sizes');var sizes=renderSizesTags(sWrap,(p.tamanhos||[]));var stWrap=document.getElementById('e-stock');var stock=renderStock(stWrap,sizes,(p.stock||{}));var preview=document.getElementById('e-preview');preview.innerHTML='';(p.images||[]).forEach(function(src){var im=document.createElement('img');im.src=src;preview.appendChild(im)});document.getElementById('e-files').onchange=function(e){filesToImages(e.target.files,function(imgs){(p.images=p.images||[]).push.apply(p.images,imgs);openEdit(id)})};document.getElementById('e-cancel').onclick=function(){modal.hidden=true};document.getElementById('e-salvar').onclick=function(){p.nome=document.getElementById('e-nome').value;p.descricao=document.getElementById('e-desc').value;p.categoria=document.getElementById('e-cat').value;p.preco=Number(document.getElementById('e-preco').value||0);p.promo=document.getElementById('e-promo').value?Number(document.getElementById('e-promo').value):null;p.tamanhos=sizes;p.stock=stock;var list=getProducts();var idx=list.findIndex(function(x){return x.id===id});list[idx]=p;saveProducts(list);modal.hidden=true;notice('Produto atualizado');refreshList()}}
-function renderSizesPickers(){var host=document.getElementById('p-sizes');var sizes=renderSizesTags(host,[]);var stHost=document.getElementById('p-stock');var stock=renderStock(stHost,sizes,{});document.getElementById('p-salvar').onclick=function(){var nome=document.getElementById('p-nome').value;var desc=document.getElementById('p-desc').value;var cat=document.getElementById('p-cat').value;var preco=Number(document.getElementById('p-preco').value||0);var promo=document.getElementById('p-promo').value?Number(document.getElementById('p-promo').value):null;var files=document.getElementById('p-files').files;filesToImages(files,function(imgs){var list=getProducts();var p={id:uid(),nome:nome,descricao:desc,categoria:cat,preco:preco,promo:promo,tamanhos:sizes,stock:stock,images:imgs,isNew:(cat==='lancamentos')};list.push(p);saveProducts(list);notice('Produto cadastrado');document.getElementById('p-preview').innerHTML='';document.getElementById('p-nome').value='';document.getElementById('p-desc').value='';document.getElementById('p-preco').value='';document.getElementById('p-promo').value='';document.getElementById('p-files').value='';renderSizesPickers();refreshList()})};document.getElementById('p-limpar').onclick=function(){document.getElementById('p-preview').innerHTML='';document.getElementById('p-nome').value='';document.getElementById('p-desc').value='';document.getElementById('p-preco').value='';document.getElementById('p-promo').value='';document.getElementById('p-files').value='';renderSizesPickers()};document.getElementById('p-files').onchange=function(e){filesToImages(e.target.files,function(imgs){var pre=document.getElementById('p-preview');pre.innerHTML='';imgs.forEach(function(src){var im=document.createElement('img');im.src=src;pre.appendChild(im)})})}}
-function renderImages(){var list=getImages();var host=document.getElementById('img-list');host.innerHTML='';list.forEach(function(src,idx){var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.alignItems='center';wrap.style.gap='8px';var im=document.createElement('img');im.src=src;var used=getProducts().filter(function(p){return (p.images||[]).includes(src)}).length;var del=document.createElement('button');del.className='btn ghost';del.textContent='Excluir';del.onclick=function(){if(used){alert('Imagem vinculada a produto');return}var arr=getImages();arr.splice(idx,1);saveImages(arr);renderImages();notice('Imagem excluída')};wrap.appendChild(im);var meta=document.createElement('div');meta.textContent=used?'Usada em '+used+' produto(s)':'Não usada';wrap.appendChild(meta);wrap.appendChild(del);host.appendChild(wrap)});document.getElementById('img-upload').onclick=function(){var f=document.getElementById('img-file').files;filesToImages(f,function(imgs){var arr=getImages();arr.push.apply(arr,imgs);saveImages(arr);renderImages();notice('Imagens enviadas')})}}
-function renderEstoque(){var host=document.getElementById('est-list');host.innerHTML='';getProducts().forEach(function(p){var card=document.createElement('div');card.className='card';card.innerHTML='<div style="font-weight:700;margin-bottom:8px">'+p.nome+'</div>';var sizes=p.tamanhos||[];sizes.forEach(function(s){var row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.alignItems='center';var label=document.createElement('div');label.textContent='Tamanho '+s;var inp=document.createElement('input');inp.className='input';inp.type='number';inp.value=(p.stock&&p.stock[s])||0;inp.oninput=function(){p.stock=p.stock||{};p.stock[s]=Number(inp.value)};row.appendChild(label);row.appendChild(inp);card.appendChild(row)});var save=document.createElement('button');save.className='btn primary';save.textContent='Salvar estoque';save.onclick=function(){var list=getProducts();var idx=list.findIndex(function(x){return x.id===p.id});list[idx]=p;saveProducts(list);notice('Estoque atualizado')};card.appendChild(save);host.appendChild(card)})}
-function renderSizesManage(){var host=document.getElementById('size-list');host.innerHTML='';getSizes().forEach(function(s,idx){var row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.alignItems='center';row.style.marginBottom='8px';var name=document.createElement('input');name.className='input';name.value=s.name;name.oninput=function(){s.name=name.value};var code=document.createElement('input');code.className='input';code.value=s.code;code.oninput=function(){s.code=code.value};var active=document.createElement('input');active.type='checkbox';active.checked=s.active;active.onchange=function(){s.active=active.checked};var save=document.createElement('button');save.className='btn primary';save.textContent='Salvar';save.onclick=function(){var arr=getSizes();arr[idx]=s;saveSizes(arr);notice('Tamanho atualizado')};row.appendChild(name);row.appendChild(code);row.appendChild(active);row.appendChild(save);host.appendChild(row)});document.getElementById('size-add').onclick=function(){var arr=getSizes();arr.push({code:document.getElementById('size-nome').value||('S'+(arr.length+1)),name:document.getElementById('size-nome').value||('S'+(arr.length+1)),active:true});saveSizes(arr);document.getElementById('size-nome').value='';renderSizesManage();notice('Tamanho adicionado')}}
-function renderCatStats(){var host=document.getElementById('cat-stats');host.innerHTML='';var cats=['oversized','dryfit','conjuntos','lancamentos'];cats.forEach(function(c){var n=getProducts().filter(function(p){return p.categoria===c}).length;var row=document.createElement('div');row.style.display='flex';row.style.justifyContent='space-between';row.innerHTML='<div>'+c.toUpperCase()+'</div><div>'+n+' produto(s)</div>';host.appendChild(row)})}
-function route(){var hash=location.hash.replace('#','')||'produtos';document.querySelectorAll('.side-nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+hash)});document.getElementById('view-produtos').hidden=hash!=='produtos';document.getElementById('view-imagens').hidden=hash!=='imagens';document.getElementById('view-estoque').hidden=hash!=='estoque';document.getElementById('view-tamanhos').hidden=hash!=='tamanhos';document.getElementById('view-categorias').hidden=hash!=='categorias'}
+function uid(){return crypto.randomUUID?crypto.randomUUID():('id'+Date.now()+Math.floor(Math.random()*1000))}
+function money(n){return 'R$ '+Number(n||0).toFixed(2)}
+function get(k,d){var r=localStorage.getItem(k);return r?JSON.parse(r):d}
+function set(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function products(){return get('sf_products',[])}
+function saveProducts(a){set('sf_products',a)}
+function categories(){return get('sf_categories',['oversized','dryfit','conjuntos','lancamentos'])}
+function saveCategories(a){set('sf_categories',a)}
+function orders(){return get('sf_orders',[])}
+function users(){return get('sf_users',[{id:uid(),email:'admin@strongfitness.com',name:'Admin',role:'admin'}])}
+function saveUsers(a){set('sf_users',a)}
+function supConf(){return get('sf_supabase',null)}
+function saveSup(c){set('sf_supabase',c)}
+function supClient(){var c=supConf();if(!c||!c.url||!c.key||!window.supabase)return null;return window.supabase.createClient(c.url,c.key)}
+
+function route(){var h=location.hash.replace('#','')||'home';document.getElementById('view-home').classList.toggle('hidden',h!=='home');document.getElementById('view-produtos').classList.toggle('hidden',h!=='produtos');document.getElementById('view-categorias').classList.toggle('hidden',h!=='categorias');document.getElementById('view-pedidos').classList.toggle('hidden',h!=='pedidos');document.getElementById('view-usuarios').classList.toggle('hidden',h!=='usuarios');document.getElementById('view-config').classList.toggle('hidden',h!=='config')}
 window.addEventListener('hashchange',route)
-document.addEventListener('DOMContentLoaded',function(){route();renderSizesPickers();refreshList();renderImages();renderEstoque();renderSizesManage();renderCatStats();document.getElementById('p-busca').oninput=refreshList;document.getElementById('p-filtro').onchange=refreshList})
+
+document.getElementById('admin-name').textContent=(JSON.parse(localStorage.getItem('sf_user'))||{}).email||'Admin'
+document.getElementById('logout').onclick=function(){localStorage.removeItem('sf_user');location.href='./admin-login.html'}
+
+function renderCards(){document.getElementById('card-produtos').textContent=String(products().length);document.getElementById('card-pedidos').textContent=String(orders().length);var unique=(users().filter(function(u){return u.role!=='admin'})).length;document.getElementById('card-clientes').textContent=String(unique);var fat=orders().reduce(function(s,o){var tot=(o.items||[]).reduce(function(ss,i){return ss+i.preco*i.qty},0);return s+tot},0);document.getElementById('card-faturamento').textContent=money(fat)}
+
+function renderChart(){var ctx=document.getElementById('sales-chart');if(!ctx)return;var m=orders().reduce(function(map,o){var d=new Date(o.id).toISOString().slice(0,10);var v=(o.items||[]).reduce(function(ss,i){return ss+i.preco*i.qty},0);map[d]=(map[d]||0)+v;return map},{}) ;var labels=Object.keys(m).sort();var data=labels.map(function(k){return m[k]});new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:'Vendas',data:data,borderColor:'#e50914',backgroundColor:'rgba(229,9,20,0.25)'}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.06)'}},y:{grid:{color:'rgba(255,255,255,0.06)'}}}}})}
+
+function renderCats(){var list=categories();var host=document.getElementById('cat-list');host.innerHTML='';list.forEach(function(c,idx){var row=document.createElement('div');row.className='flex items-center justify-between px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]';var name=document.createElement('input');name.className='h-9 px-3 rounded-md bg-panel border border-[rgba(255,255,255,0.08)]';name.value=c;name.oninput=function(){list[idx]=name.value};var del=document.createElement('button');del.className='h-9 px-3 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)]';del.textContent='Excluir';del.onclick=function(){list.splice(idx,1);saveCategories(list);renderCats();renderProdFilters()};row.appendChild(name);row.appendChild(del);host.appendChild(row)});document.getElementById('cat-add').onclick=function(){var n=document.getElementById('cat-nome').value.trim();if(!n)return;list.push(n);document.getElementById('cat-nome').value='';saveCategories(list);renderCats();renderProdFilters()}}
+
+function renderProdFilters(){var sel=document.getElementById('filtro-cat');sel.innerHTML='<option value="todos">Todas</option>';categories().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});var mcat=document.getElementById('m-cat');mcat.innerHTML='';categories().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;mcat.appendChild(o)})}
+
+function renderProducts(){var list=products();var q=(document.getElementById('busca-prod').value||'').toLowerCase();var cat=document.getElementById('filtro-cat').value;var st=document.getElementById('filtro-status').value;var tbody=document.getElementById('produtos-tbody');tbody.innerHTML='';list.filter(function(p){var okName=p.nome.toLowerCase().includes(q);var okCat=(cat==='todos')||(p.categoria===cat);var okSt=(st==='todos')||(p.status===st);return okName&&okCat&&okSt}).forEach(function(p){var tr=document.createElement('tr');var img=p.imagem_principal||((p.galeria_de_imagens||[])[0])||'';tr.innerHTML='<td class="p-2"><img src="'+img+'" class="h-10 w-14 object-cover rounded-md border border-[rgba(255,255,255,0.08)]"></td><td class="p-2">'+p.nome+'</td><td class="p-2">'+p.categoria+'</td><td class="p-2">'+money(p.preco)+'</td><td class="p-2">'+(p.estoque||0)+'</td><td class="p-2">'+(p.status||'ativo')+'</td><td class="p-2">'+new Date(p.criado_em).toLocaleString()+'</td><td class="p-2"><button class="h-9 px-3 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)]" data-edit="'+p.id+'">Editar</button> <button class="h-9 px-3 rounded-md bg-gradient-to-b from-accent to-accent2 text-white border border-[#3a0c0f]" data-del="'+p.id+'">Excluir</button></td>';tbody.appendChild(tr)});Array.from(tbody.querySelectorAll('[data-edit]')).forEach(function(b){b.onclick=function(){openModal(list.find(function(x){return String(x.id)===String(b.dataset.edit)}))}});Array.from(tbody.querySelectorAll('[data-del]')).forEach(function(b){b.onclick=function(){var id=b.dataset.del;var arr=products().filter(function(x){return String(x.id)!==String(id)});saveProducts(arr);renderProducts();renderCards()}})}
+
+function openModal(p){document.getElementById('modal').classList.remove('hidden');document.getElementById('m-nome').value=p?p.nome:'';document.getElementById('m-desc').value=p?p.descricao||'':'';document.getElementById('m-preco').value=p?p.preco||0:'';document.getElementById('m-cat').value=p?p.categoria||categories()[0]:categories()[0];document.getElementById('m-estoque').value=p?p.estoque||0:'';document.getElementById('m-status').value=p?p.status||'ativo':'ativo';var prev=document.getElementById('m-principal-prev');prev.hidden=true;document.getElementById('m-principal').value='';var galPrev=document.getElementById('m-galeria-prev');galPrev.innerHTML='';var principalUrl='';var galUrls=[];if(p&&p.imagem_principal){principalUrl=p.imagem_principal;prev.src=principalUrl;prev.hidden=false}if(p&&(p.galeria_de_imagens||[]).length){p.galeria_de_imagens.forEach(function(src){var im=document.createElement('img');im.src=src;im.className='h-20 w-full object-cover rounded-md border border-[rgba(255,255,255,0.08)]';galPrev.appendChild(im)})}
+var estInp=document.getElementById('m-estoque');var stSel=document.getElementById('m-status');estInp.oninput=function(){var v=Number(estInp.value||0);if(v<=0){stSel.value='esgotado'}}
+var sizeData=[];if(p&&p.stock){Object.keys(p.stock).forEach(function(k){sizeData.push({name:k,qty:Number(p.stock[k]||0)})})}else if(p&&p.tamanhos){p.tamanhos.forEach(function(k){sizeData.push({name:k,qty:0})})}
+function renderSizeList(){var host=document.getElementById('m-size-list');host.innerHTML='';sizeData.forEach(function(row,idx){var wrap=document.createElement('div');wrap.className='flex items-center gap-2';var name=document.createElement('div');name.className='h-9 px-3 rounded-md bg-panel border border-[rgba(255,255,255,0.08)] flex items-center';name.textContent=row.name;var qty=document.createElement('input');qty.type='number';qty.className='h-9 px-3 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]';qty.value=row.qty;qty.oninput=function(){sizeData[idx].qty=Number(qty.value||0)};var del=document.createElement('button');del.className='h-9 px-3 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)]';del.textContent='Remover';del.onclick=function(){sizeData.splice(idx,1);renderSizeList()};wrap.appendChild(name);wrap.appendChild(qty);wrap.appendChild(del);host.appendChild(wrap)});var sum=sizeData.reduce(function(s,r){return s+Number(r.qty||0)},0);if(sum<=0){stSel.value='esgotado'}}
+renderSizeList();
+document.getElementById('m-size-add').onclick=function(){var n=document.getElementById('m-size-name').value;var q=Number(document.getElementById('m-size-qty').value||0);if(!n)return;var exists=sizeData.find(function(r){return r.name===n});if(exists){exists.qty+=q}else{sizeData.push({name:n,qty:q})}document.getElementById('m-size-qty').value='';renderSizeList()}
+function readFile(f,cb){var c=supClient();var conf=supConf();if(c&&conf&&conf.bucket){var path='prod-'+Date.now()+'-'+f.name;c.storage.from(conf.bucket).upload(path,f).then(function(){var url=c.storage.from(conf.bucket).getPublicUrl(path).data.publicUrl;cb(url)}).catch(function(){var r=new FileReader();r.onload=function(){cb(r.result)};r.readAsDataURL(f)})}else{var r=new FileReader();r.onload=function(){cb(r.result)};r.readAsDataURL(f)}}
+document.getElementById('m-principal').onchange=function(e){var f=e.target.files[0];if(!f)return;readFile(f,function(url){principalUrl=url;prev.src=url;prev.hidden=false})}
+document.getElementById('m-galeria').onchange=function(e){var files=Array.from(e.target.files||[]);if(!files.length)return;galUrls=[];galPrev.innerHTML='';var pending=files.length;files.forEach(function(f){readFile(f,function(url){galUrls.push(url);var im=document.createElement('img');im.src=url;im.className='h-20 w-full object-cover rounded-md border border-[rgba(255,255,255,0.08)]';galPrev.appendChild(im);if(--pending===0){} })})}
+document.getElementById('m-cancel').onclick=function(){document.getElementById('modal').classList.add('hidden')}
+document.getElementById('m-save').onclick=function(){var nome=document.getElementById('m-nome').value;var desc=document.getElementById('m-desc').value;var preco=Number(document.getElementById('m-preco').value||0);var cat=document.getElementById('m-cat').value;var estoqueInput=Number(document.getElementById('m-estoque').value||0);var status=document.getElementById('m-status').value;var totalSizes=sizeData.reduce(function(s,r){return s+Number(r.qty||0)},0);var estoque=(sizeData.length?totalSizes:estoqueInput);if(estoque<=0)status='esgotado';var tamanhos=(sizeData.length?sizeData.map(function(r){return r.name}):p&&p.tamanhos||[]);var stock=(sizeData.length?sizeData.reduce(function(o,r){o[r.name]=Number(r.qty||0);return o},{}):p&&p.stock||undefined);var arr=products();if(p){var idx=arr.findIndex(function(x){return x.id===p.id});arr[idx]={id:p.id,nome:nome,descricao:desc,preco:preco,categoria:cat,estoque:estoque,status:status,imagem_principal:principalUrl||p.imagem_principal||'',galeria_de_imagens:(galUrls.length?galUrls:(p.galeria_de_imagens||[])),tamanhos:tamanhos,stock:stock,criado_em:p.criado_em||Date.now()} }else{arr.push({id:uid(),nome:nome,descricao:desc,preco:preco,categoria:cat,estoque:estoque,status:status,imagem_principal:principalUrl||'',galeria_de_imagens:galUrls,tamanhos:tamanhos,stock:stock,criado_em:Date.now()})}
+saveProducts(arr);document.getElementById('modal').classList.add('hidden');renderProducts();renderCards()}
+}
+
+document.getElementById('novo-produto').onclick=function(){openModal(null)}
+document.getElementById('busca-prod').oninput=renderProducts
+document.getElementById('filtro-cat').onchange=renderProducts
+document.getElementById('filtro-status').onchange=renderProducts
+document.getElementById('salvar-alteracoes').onclick=function(){saveProducts(products());renderProducts();renderCards();alert('Alterações salvas')}
+
+function renderOrders(){var host=document.getElementById('order-list');host.innerHTML='';orders().slice().reverse().forEach(function(o){var wrap=document.createElement('div');wrap.className='flex items-center justify-between px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]';var tot=(o.items||[]).reduce(function(s,i){return s+i.preco*i.qty},0);var left=document.createElement('div');left.innerHTML='<div class="font-semibold">Pedido #'+o.id+'</div><div class="text-sm text-muted">'+(o.items||[]).length+' itens • '+money(tot)+'</div>';var right=document.createElement('div');var select=document.createElement('select');select.className='h-9 px-3 rounded-md bg-panel border border-[rgba(255,255,255,0.08)]';['Pendente','Pago','Enviado','Entregue'].forEach(function(s){var op=document.createElement('option');op.textContent=s;op.selected=(o.status===s.toLowerCase());select.appendChild(op)});select.onchange=function(){o.status=select.value.toLowerCase();var arr=orders();var idx=arr.findIndex(function(x){return x.id===o.id});arr[idx]=o;set('sf_orders',arr)};var details=document.createElement('button');details.className='h-9 px-3 rounded-md bg-[#1b1b1b] border border-[rgba(255,255,255,0.08)]';details.textContent='Detalhes';details.onclick=function(){alert((o.items||[]).map(function(i){return i.nome+' x'+i.qty}).join('\n'))};right.appendChild(select);right.appendChild(details);wrap.appendChild(left);wrap.appendChild(right);host.appendChild(wrap)})}
+
+function renderUsers(){var host=document.getElementById('user-list');host.innerHTML='';users().forEach(function(us,idx){var row=document.createElement('div');row.className='flex items-center justify-between px-3 py-2 rounded-md bg-panel2 border border-[rgba(255,255,255,0.08)]';var left=document.createElement('div');left.innerHTML='<div class="font-semibold">'+(us.name||us.email)+'</div><div class="text-sm text-muted">'+us.email+'</div>';var sel=document.createElement('select');sel.className='h-9 px-3 rounded-md bg-panel border border-[rgba(255,255,255,0.08)]';['admin','cliente'].forEach(function(r){var op=document.createElement('option');op.value=r;op.textContent=r;op.selected=(us.role===(r==='cliente'?'user':'admin'));sel.appendChild(op)});sel.onchange=function(){us.role=sel.value==='cliente'?'user':'admin';var arr=users();arr[idx]=us;saveUsers(arr)};row.appendChild(left);row.appendChild(sel);host.appendChild(row)})}
+
+document.getElementById('sup-save').onclick=function(){var url=document.getElementById('sup-url').value.trim();var key=document.getElementById('sup-key').value.trim();var bucket=document.getElementById('sup-bucket').value.trim();saveSup({url:url,key:key,bucket:bucket});alert('Configurações salvas')}
+
+function init(){route();renderCards();renderChart();renderCats();renderProdFilters();renderProducts();renderOrders();renderUsers();var sc=supConf();if(sc){document.getElementById('sup-url').value=sc.url||'';document.getElementById('sup-key').value=sc.key||'';document.getElementById('sup-bucket').value=sc.bucket||''}}
+document.addEventListener('DOMContentLoaded',init)
 </script>
 </body></html>
