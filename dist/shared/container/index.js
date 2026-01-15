@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const tsyringe_1 = require("tsyringe");
+const UsersRepositoryPrisma_1 = require("@modules/users/repositories/prisma/UsersRepositoryPrisma");
+const ProductsRepositoryPrisma_1 = require("@modules/products/repositories/prisma/ProductsRepositoryPrisma");
+const UserTokensRepositoryPrisma_1 = require("@modules/auth/repositories/prisma/UserTokensRepositoryPrisma");
+const RedisCacheProvider_1 = require("@shared/cache/RedisCacheProvider");
+tsyringe_1.container.registerSingleton('UsersRepository', UsersRepositoryPrisma_1.UsersRepositoryPrisma);
+tsyringe_1.container.registerSingleton('ProductsRepository', ProductsRepositoryPrisma_1.ProductsRepositoryPrisma);
+tsyringe_1.container.registerSingleton('UserTokensRepository', UserTokensRepositoryPrisma_1.UserTokensRepositoryPrisma);
+tsyringe_1.container.registerSingleton('CacheProvider', RedisCacheProvider_1.RedisCacheProvider);
